@@ -1,0 +1,28 @@
+{
+  "name": "pick-me",
+  "version": "1.0.0",
+  "description": "generate a function that returns random items from a list with specified frequencies",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "jest --config jestconfig.json",
+    "build": "tsc"
+  },
+  "keywords": [
+    "frequency",
+    "random",
+    "list",
+    "pick"
+  ],
+  "author": "David F. Houghton",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "eslint": "^8.13.0",
+    "eslint-config-prettier": "^8.5.0",
+    "jest": "^27.5.1",
+    "prettier": "^2.6.2",
+    "ts-jest": "^27.1.4",
+    "typescript": "^4.6.3"
+  }
+}
