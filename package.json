@@ -1,6 +1,6 @@
 {
   "name": "pick-me-too",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Generate a function that returns random items from a list with specified frequencies.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -12,7 +12,10 @@
     "frequency",
     "random",
     "list",
-    "pick"
+    "pick",
+    "mock",
+    "mocking",
+    "testing"
   ],
   "author": {
     "name": "David F. Houghton",
