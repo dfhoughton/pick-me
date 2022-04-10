@@ -43,7 +43,7 @@ const consonants = pickMe(
   ],
   rng,
 )
-// our language as simple CV syllables
+// our language has simple CV syllables
 const syllable = () => `${consonants()}${vowels()}`
 const morphemeLength = pickMe(
   [
