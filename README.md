@@ -6,7 +6,7 @@ Generate functions that pick things from lists with specified frequencies.
 ```ts
 // Let's make a generator of quasi-Polynesian lorem ipsum!
 
-import { pickMe, rando } from 'pick-me'
+import { pickMe, rando } from 'pick-me-too'
 
 // we want our text reproducible, so we use a seeded random number generator
 const rng = rando(1)
@@ -140,7 +140,7 @@ The compilation is not terribly expensive, but skipping it altogether is cheaper
 
 @example
 ```ts
-import { rando, pickMe } from 'pick-me'
+import { rando, pickMe } from 'pick-me-too'
 
 // make a random number generator with a seed of 1
 const rng = rando(1)
@@ -163,7 +163,7 @@ There are many others if you don't find this suitable.
 
 @example
 ```ts
-import { rando } from 'pick-me'
+import { rando } from 'pick-me-too'
 
 // make a random number generator with a seed of 1
 const rng = rando(1)
@@ -171,3 +171,13 @@ const ar: number[] = []
 for (let i = 0; i < 3; i++) ar.push(rng())
 // => [ 0.6270739405881613, 0.002735721180215478, 0.5274470399599522 ]
 ```
+
+## Acknowledgements
+
+It is possible this package is a duplicate. I didn't try very hard to find out. I just felt like writing
+this code and, having written it, I felt like publishing it. It may behoove you to check npmjs carefully
+and compare packages.
+
+That being said, `pickMe` should be near optimally fast (if the frequences are strongly skewed, it is
+possible to compile a picker that uses fewer numerical comparisons in the typical case). Its unit and
+documentation tests are thorough.
