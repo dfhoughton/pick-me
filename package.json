@@ -1,7 +1,7 @@
 {
   "name": "pick-me",
   "version": "1.0.0",
-  "description": "generate a function that returns random items from a list with specified frequencies",
+  "description": "Generate a function that returns random items from a list with specified frequencies.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -14,8 +14,16 @@
     "list",
     "pick"
   ],
-  "author": "David F. Houghton",
+  "author": {
+    "name": "David F. Houghton",
+    "url": "https://github.com/dfhoughton"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/dfhoughton/pick-me",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dfhoughton/pick-me"
+  },
   "devDependencies": {
     "@types/jest": "^27.4.1",
     "eslint": "^8.13.0",

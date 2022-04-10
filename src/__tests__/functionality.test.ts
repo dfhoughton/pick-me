@@ -85,4 +85,22 @@ describe('pickMe', () => {
     test(`we got roughly as many as we expected for ${l}, with frequency ${f}`, () =>
       expect(Math.round(c / expectation)).toEqual(1))
   }
+  const f1 = pickMe(
+    [
+      ['foo', 1],
+      ['bar', 1],
+      ['baz', 1],
+    ],
+    rando(1),
+  )
+  const f2 = pickMe(['foo', 'bar', 'baz'], rando(1))
+  const ar1: string[] = []
+  const ar2: string[] = []
+  for (let i = 0; i < 100; i++) {
+    ar1.push(f1())
+    ar2.push(f2())
+  }
+  test('frequencies are optional if all are the same', () => {
+    expect(ar1).toEqual(ar2)
+  })
 })
