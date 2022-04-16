@@ -150,6 +150,30 @@ for (let i = 0; i < 10; i++) ar.push(fooBarBaz())
 // => [ 'baz', 'foo', 'baz', 'baz', 'baz', 'bar', 'baz', 'baz', 'bar', 'baz' ]
 ```
 
+### `function pickMeToo<T>(frequencies: [T, number][] | T[]): (rng: () => number) => () => T`
+
+Generates a function from random number generators to generators of `T`.
+
+This is like `pickMe` -- in fact, `pickMe` delegates to this -- but it factors out the random
+number generator. It is useful in a situation where you want to incur the compilation of the
+picker only once but you want to plug in different random number sequences on different
+occasions.
+
+@example
+```ts
+import { pickMeToo } from 'pick-me-too'
+
+const fooBarBaz = pickMeToo([["foo", 1], ["bar", 1000], ["baz", 1]])
+
+// minimum probablility generator just returns "foo"
+fooBarBaz(() => 0)()
+// => "foo"
+
+// maximum probability generator just returns "baz"
+fooBarBaz(() => 1)()
+// => "baz"
+```
+
 ### `function rando(seed: number): () => number`
 
 Generates a random number sequence generator.

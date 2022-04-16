@@ -1,6 +1,6 @@
 /** tests for all the code shown in documentation */
 
-import { rando, pickMe } from '..'
+import { rando, pickMe, pickMeToo } from '..'
 
 describe('README', () => {
   describe('Synopsis', () => {
@@ -111,6 +111,15 @@ describe('index.ts', () => {
     const ar: string[] = []
     for (let i = 0; i < 10; i++) ar.push(fooBarBaz())
     test('pickMe', () => expect(ar).toEqual(['baz', 'foo', 'baz', 'baz', 'baz', 'bar', 'baz', 'baz', 'bar', 'baz']))
+  })
+  describe('pickMeToo', () => {
+    const fooBarBaz = pickMeToo([
+      ['foo', 1],
+      ['bar', 1000],
+      ['baz', 1],
+    ])
+    test('low probability', () => expect(fooBarBaz(() => 0)()).toEqual('foo'))
+    test('high probability', () => expect(fooBarBaz(() => 1)()).toEqual('baz'))
   })
   describe('rando', () => {
     const rng = rando(1)

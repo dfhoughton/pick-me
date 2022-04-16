@@ -19,10 +19,10 @@
  * a non-positive frequency will be culled from the list. `pickMe` will throw an error if the list is empty.
  * Likewise, it will throw an error if any item appears more than once in the list. `[]` is
  * not good. `[[1, 1], [1, 2]]` is no better.
- * 
+ *
  * Note, the item returned by `pickMe` is the item you provided, not a copy. If you are picking from a list of
  * objects and you modify one of them, it will remain modified.
- * 
+ *
  * Finally, `pickMe` compiles an efficient picker from the parameters provided. As with other compiled things, such
  * as regular expressions, you want to do this one time in an initialization phase and then reuse it in loops.
  * The compilation is not terribly expensive, but skipping it altogether is cheaper.
@@ -40,16 +40,43 @@
  * ```
  *
  * @param {[T, number][] | T[]} frequencies - phrases to match
- * @param {() => number} [rando=() => Math.random()] - random number generator
+ * @param {Rng} [rando=() => Math.random()] - random number generator
  * @returns {() => T} a picker of T's
  */
-export function pickMe<T>(frequencies: [T, number][] | T[], rando?: () => number): () => T {
+export function pickMe<T>(frequencies: [T, number][] | T[], rando?: Rng): () => T {
+  return pickMeToo(frequencies)(rando ?? (() => Math.random()))
+}
+
+/**
+ * Generates pickers of things. This separates the compilation step from frequencies so you
+ * can plug different random number generators in.
+ *
+ * @example
+ * ```ts
+ * import { pickMeToo } from 'pick-me'
+ *
+ * const fooBarBaz = pickMeToo([["foo", 1], ["bar", 1000], ["baz", 1]])
+ *
+ * // minimum probablility generator just returns "foo"
+ * fooBarBaz(() => 0)()
+ * // => "foo"
+ *
+ * // maximum probability generator just returns "baz"
+ * fooBarBaz(() => 1)()
+ * // => "baz"
+ * ```
+ *
+ * @template T - the sort of thing to pick
+ * @param {[T, number][] | T[]} frequencies - things to pick according to their frequencies
+ * @returns {(rng: Rng) => () => T} - a function from random number generators to pickers of things in the frequency list
+ */
+export function pickMeToo<T>(frequencies: [T, number][] | T[]): (rng: Rng) => () => T {
   frequencies = sanitize(normalize(frequencies))
   // short-circuit edge cases
   if (frequencies.length === 0) throw new Error(`nothing to select in ${frequencies}`)
   if (frequencies.length === 1) {
     const [t] = frequencies[0]
-    return () => t
+    return (_rng: Rng) => () => t
   }
   // throw an error in case of duplicates
   // it is difficult to do this efficiently because we allow T to be anything
@@ -59,7 +86,6 @@ export function pickMe<T>(frequencies: [T, number][] | T[], rando?: () => number
       if (t === frequencies[j][0]) throw new Error(`${t} appears more than once among frequencies`)
     }
   }
-  rando ??= () => Math.random()
   let total = 0,
     acc = 0
   for (const [, n] of frequencies) total += n
@@ -75,8 +101,15 @@ export function pickMe<T>(frequencies: [T, number][] | T[], rando?: () => number
     thresholds.push(n)
   }
   const f = thresholder(thresholds)
-  return () => items[f(rando!())]!
+  return (rng: Rng) => () => items[f(rng())]!
 }
+
+/**
+ * The type of random number generators. Ideally this will return number from a continuous distribution
+ * in the interval [0, 1], but for `pickMe` and number less than 0 is the same as 0 and any number
+ * greater than 1 is the same as 1.
+ */
+export type Rng = () => number
 
 // take in an array of ambiguous type and return a list of pairs, T and frequency
 function normalize<T>(frequencies: [T, number][] | T[]): [T, number][] {
@@ -130,9 +163,9 @@ function portion(thresholds: number[], start: number, end: number): string {
  * ```
  *
  * @param {number} seed - the seed for a random number sequence
- * @returns {() => number} a generator of random numbers
+ * @returns {Rng} a generator of random numbers
  */
-export function rando(seed: number): () => number {
+export function rando(seed: number): Rng {
   return () => {
     let t = (seed += 0x6d2b79f5)
     t = Math.imul(t ^ (t >>> 15), t | 1)
