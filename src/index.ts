@@ -71,21 +71,18 @@ export function pickMe<T>(frequencies: [T, number][] | T[], rando?: Rng): () => 
  * @returns {(rng: Rng) => () => T} - a function from random number generators to pickers of things in the frequency list
  */
 export function pickMeToo<T>(frequencies: [T, number][] | T[]): (rng: Rng) => () => T {
-  frequencies = sanitize(normalize(frequencies))
+  const simpleton = simplePicker(frequencies)
+  if (simpleton) return simpleton
+
+  frequencies = sanitize(frequencies as any as [T, number][])
+
   // short-circuit edge cases
   if (frequencies.length === 0) throw new Error(`nothing to select in ${frequencies}`)
   if (frequencies.length === 1) {
     const [t] = frequencies[0]
     return (_rng: Rng) => () => t
   }
-  // throw an error in case of duplicates
-  // it is difficult to do this efficiently because we allow T to be anything
-  for (let i = 0, lim = frequencies.length - 1; i < lim; i++) {
-    const t = frequencies[i][0]
-    for (let j = i + 1; j < frequencies.length; j++) {
-      if (t === frequencies[j][0]) throw new Error(`${t} appears more than once among frequencies`)
-    }
-  }
+  dupChecker(frequencies, (item: [T, number] | T) => (item as [T, number])[0])
   let total = 0,
     acc = 0
   for (const [, n] of frequencies) total += n
@@ -111,13 +108,37 @@ export function pickMeToo<T>(frequencies: [T, number][] | T[]): (rng: Rng) => ()
  */
 export type Rng = () => number
 
-// take in an array of ambiguous type and return a list of pairs, T and frequency
-function normalize<T>(frequencies: [T, number][] | T[]): [T, number][] {
-  if (frequencies.length === 0) return frequencies as any as [T, number][]
-  if ((frequencies as any).every((s: any) => Array.isArray(s) && s.length === 2 && typeof s[1] === 'number'))
-    return frequencies as any as [T, number][]
-  const ar = frequencies.map((t) => [t, 1])
-  return ar as any as [T, number][]
+// throw an error in case of duplicates
+// it is difficult to do this efficiently because we allow T to be anything, so we can't for instance use a Set
+function dupChecker<T>(frequencies: [T, number][] | T[], toT: (item: [T, number] | T) => T) {
+  for (let i = 0, lim = frequencies.length - 1; i < lim; i++) {
+    const t = toT(frequencies[i])
+    for (let j = i + 1; j < frequencies.length; j++) {
+      if (t === toT(frequencies[j])) throw new Error(`${t} appears more than once among frequencies`)
+    }
+  }
+}
+
+// if all frequencies are the same, we can make a simpler picker
+function simplePicker<T>(frequencies: [T, number][] | T[]): undefined | ((rng: Rng) => () => T) {
+  if (frequencies.length === 0) return
+  if ((frequencies as any).every((s: any) => Array.isArray(s) && s.length === 2 && typeof s[1] === 'number')) {
+    const castFrequencies: [T, number][] = frequencies as any as [T, number][]
+    const [, n1] = castFrequencies[0]
+    if (n1 > 0 && castFrequencies.every(([, n2]) => n2 === n1)) {
+      const items = castFrequencies.map(([t]) => t)
+      dupChecker(items, (item: [T, number] | T) => item as T)
+      return (rng: Rng) => () => items[Math.floor(items.length * rng())]
+    }
+  } else {
+    const items: T[] = [...frequencies] as any as T[]
+    if (items.length === 1) {
+      const t = items[0]
+      return (_rng: Rng) => () => t
+    }
+    dupChecker(items, (item: [T, number] | T) => item as T)
+    return (rng: Rng) => () => items[Math.floor(items.length * rng())]
+  }
 }
 
 // remove impossible frequencies

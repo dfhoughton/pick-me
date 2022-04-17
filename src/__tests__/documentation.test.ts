@@ -92,7 +92,6 @@ describe('README', () => {
       return s.join(' ')
     }
     const saying = clause()
-    console.log(saying)
     test('polynesianish', () => expect(saying).toEqual("rekātū pe'ide kēpe 'ātēdapidapi kaha"))
   })
 })
