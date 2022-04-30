@@ -180,7 +180,7 @@ Generates a random number sequence generator.
 
 This is a demonstration generator useful for testing and documentation. Any zero-argument function that returns
 numbers will suffice for `pickMe`. If it returns 0 or less, the first item
-given to `pickMe` will be picked. If it is 1 or less, the last item will be.
+given to `pickMe` will be picked. If it is 1 or more, the last item will be.
 
 The implementation of `rando` is taken from [this Stack Overflow comment](https://stackoverflow.com/a/47593316/15060051).
 There are many others if you don't find this suitable.
