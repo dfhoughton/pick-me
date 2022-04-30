@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.2.1 *2022-4-30*
+- fixed typo in README
 ## v1.2.0 *2022-4-17*
 - some efficiency improvements in edge cases
 ## v1.1.1 *2022-4-16*

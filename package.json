@@ -1,6 +1,6 @@
 {
   "name": "pick-me-too",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Generate a function that returns random items from a list with specified frequencies.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
