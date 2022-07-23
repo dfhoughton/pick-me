@@ -1,5 +1,7 @@
 # Changelog
 
+## v1.3.0 *2022-7-23*
+- made `rando` reseedable
 ## v1.2.1 *2022-4-30*
 - fixed typo in README
 ## v1.2.0 *2022-4-17*

@@ -44,7 +44,8 @@
  * @returns {() => T} a picker of T's
  */
 export function pickMe<T>(frequencies: [T, number][] | T[], rando?: Rng): () => T {
-  return pickMeToo(frequencies)(rando ?? (() => Math.random()))
+  const rng = rando ?? (() => Math.random())
+  return pickMeToo(frequencies)(rng)
 }
 
 /**
@@ -171,6 +172,10 @@ function portion(thresholds: number[], start: number, end: number): string {
  *
  * The implementation of `rando` is taken from https://stackoverflow.com/a/47593316/15060051.
  * It is the Mulberry32 algorithm.
+ * 
+ * Note, `rando` can be re-seeded by passing an optional number argument as the fresh seed (see
+ * example below). This can be useful if you are sharing a random number generator among
+ * several objects and you need to change random number sequences.
  *
  * @example
  * ```ts
@@ -181,13 +186,24 @@ function portion(thresholds: number[], start: number, end: number): string {
  * const ar: number[] = []
  * for (let i = 0; i < 3; i++) ar.push(rng())
  * // => [ 0.6270739405881613, 0.002735721180215478, 0.5274470399599522 ]
+ * 
+ * // the same seed will produce the same random number sequence
+ * rando(1)()
+ * // => 0.6270739405881613
+ * rando(1)()
+ * // => 0.6270739405881613
+ * 
+ * // but you can provide a fresh seed to change the sequence
+ * (rando(1) as any)(2)
+ * // => 0.7342509443406016
  * ```
  *
  * @param {number} seed - the seed for a random number sequence
  * @returns {Rng} a generator of random numbers
  */
 export function rando(seed: number): Rng {
-  return () => {
+  return (reseed?: number) => {
+    if (reseed !== undefined) seed = reseed
     let t = (seed += 0x6d2b79f5)
     t = Math.imul(t ^ (t >>> 15), t | 1)
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61)

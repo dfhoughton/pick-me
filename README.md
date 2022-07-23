@@ -194,6 +194,10 @@ const rng = rando(1)
 const ar: number[] = []
 for (let i = 0; i < 3; i++) ar.push(rng())
 // => [ 0.6270739405881613, 0.002735721180215478, 0.5274470399599522 ]
+
+// reseed the generator
+(rng as any)(Math.random())
+// => ??? the random number sequence is still deterministic, but at a completely different place
 ```
 
 ## Acknowledgements

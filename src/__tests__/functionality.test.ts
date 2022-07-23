@@ -16,6 +16,19 @@ describe('rando', () => {
   for (let i = 0; i < bins.length; i++) {
     test('even distribution', () => expect(Math.round(bins[i] / 1000)).toEqual(1))
   }
+  for (let i = 0; i < 10; i++) {
+    const seed = Math.random()
+    const rng1 = rando(seed),
+      rng2 = rando(seed)
+    const ar1: number[] = [],
+      ar2: number[] = []
+    for (let j = 0; j < 10; j++) {
+      ar1.push(rng1())
+      ar2.push(rng2())
+    }
+    test(`two randos with seed ${seed} produce the same sequence of random values`, () => expect(ar1).toEqual(ar2))
+    test(`randos can be reseeded`, () => expect(rng1()).not.toEqual((rng2 as any)(Math.random())))
+  }
 })
 
 describe('pickMe', () => {

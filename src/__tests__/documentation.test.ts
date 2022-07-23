@@ -87,7 +87,7 @@ describe('README', () => {
       rng,
     )
     const clause = () => {
-      let s = []
+      let s: string[] = []
       for (let i = 0, lim = clauseLength(); i < lim; i++) s.push(word())
       return s.join(' ')
     }
@@ -127,5 +127,7 @@ describe('index.ts', () => {
     test('rando', () => {
       expect(ar).toEqual([0.6270739405881613, 0.002735721180215478, 0.5274470399599522])
     })
+    test('rando(1)()', () => expect(rando(1)()).toEqual(0.6270739405881613))
+    test('(rando(1) as any)(2)', () => expect((rando(1) as any)(2)).toEqual(0.7342509443406016))
   })
 })
