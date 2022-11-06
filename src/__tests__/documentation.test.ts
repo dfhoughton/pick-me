@@ -92,7 +92,7 @@ describe('README', () => {
       return s.join(' ')
     }
     const saying = clause()
-    test('polynesianish', () => expect(saying).toEqual("rekātū pe'ide kēpe 'ātēdapidapi kaha"))
+    test('polynesianish', () => expect(saying).toEqual("'ātika kādepāgū bīpīpe pōhopōhopunā'ī bi'a'anū'ā'idi'idi'ōkē'ōkēpetē"))
   })
 })
 
@@ -109,7 +109,7 @@ describe('index.ts', () => {
     )
     const ar: string[] = []
     for (let i = 0; i < 10; i++) ar.push(fooBarBaz())
-    test('pickMe', () => expect(ar).toEqual(['baz', 'foo', 'baz', 'baz', 'baz', 'bar', 'baz', 'baz', 'bar', 'baz']))
+    test('pickMe', () => expect(ar).toEqual(['bar', 'baz', 'bar', 'foo', 'foo', 'baz', 'bar', 'bar', 'baz', 'foo']))
   })
   describe('pickMeToo', () => {
     const fooBarBaz = pickMeToo([
@@ -117,7 +117,7 @@ describe('index.ts', () => {
       ['bar', 1000],
       ['baz', 1],
     ])
-    test('low probability', () => expect(fooBarBaz(() => 0)()).toEqual('foo'))
+    test('low probability', () => expect(fooBarBaz(() => 0)()).toEqual('bar'))
     test('high probability', () => expect(fooBarBaz(() => 1)()).toEqual('baz'))
   })
   describe('rando', () => {

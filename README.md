@@ -103,7 +103,7 @@ const clause = () => {
 }
 
 const saying = clause()
-// => "rekātū pe'ide kēpe 'ātēdapidapi kaha"
+// => "'ātika kādepāgū bīpīpe pōhopōhopunā'ī bi'a'anū'ā'idi'idi'ōkē'ōkēpetē"
 ```
 
 ## API

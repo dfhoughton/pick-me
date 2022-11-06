@@ -36,7 +36,7 @@
  * const fooBarBaz = pickMe([["foo", 1], ["bar", 2], ["baz", 3]], rng)
  * const ar: string[] = []
  * for (let i = 0; i < 10; i++) ar.push(fooBarBaz())
- * // => [ 'baz', 'foo', 'baz', 'baz', 'baz', 'bar', 'baz', 'baz', 'bar', 'baz' ]
+ * // => ['bar', 'baz', 'bar', 'foo', 'foo', 'baz', 'bar', 'bar', 'baz', 'foo']
  * ```
  *
  * @param {[T, number][] | T[]} frequencies - phrases to match
@@ -58,11 +58,11 @@ export function pickMe<T>(frequencies: [T, number][] | T[], rando?: Rng): () => 
  *
  * const fooBarBaz = pickMeToo([["foo", 1], ["bar", 1000], ["baz", 1]])
  *
- * // minimum probablility generator just returns "foo"
+ * // minimum probablility generator; this will always return the same thing, which happens to be "foo"
  * fooBarBaz(() => 0)()
- * // => "foo"
+ * // => "bar"
  *
- * // maximum probability generator just returns "baz"
+ * // maximum probability generator; this will always return the same thing, which happens to be  "baz"
  * fooBarBaz(() => 1)()
  * // => "baz"
  * ```
@@ -84,22 +84,96 @@ export function pickMeToo<T>(frequencies: [T, number][] | T[]): (rng: Rng) => ()
     return (_rng: Rng) => () => t
   }
   dupChecker(frequencies, (item: [T, number] | T) => (item as [T, number])[0])
-  let total = 0,
-    acc = 0
-  for (const [, n] of frequencies) total += n
-  for (let i = 0; i < frequencies.length; i++) {
-    const [, n] = frequencies[i]
-    acc += n
-    frequencies[i][1] = acc / total
+  const [objects, nodes] = prepare(frequencies)
+  const root = buildBranch(nodes)
+  addThresholds(root, 0)
+  const exp = ternarize(root)
+  const picker: (n: number) => number = eval(`(p) => ${exp}`)
+  return (rng: Rng) => () => objects[picker(rng())]
+}
+
+// convert a Node search tree into a nested ternary expression
+function ternarize(n: Node): string {
+  if (n.left && n.right) {
+    return `(p < ${n.leftThreshold} ? ${ternarize(n.left)} : (p < ${n.rightThreshold} ? ${n.index} : ${ternarize(n.right)}))`
+  } else if (n.left) {
+    return `(p < ${n.leftThreshold} ? ${ternarize(n.left)} : ${n.index})`
+  } else if (n.right) {
+    return `(p < ${n.rightThreshold} ? ${n.index} : ${ternarize(n.right)})`
+  } else {
+    return n.index.toString()
   }
-  const items: T[] = [],
-    thresholds: number[] = []
-  for (const [t, n] of frequencies) {
-    items.push(t)
-    thresholds.push(n)
+}
+
+// convert the list of frequencies into Nodes (see below) and a list
+// of things to pick
+function prepare<T>(frequencies: [T, number][]): [T[], Node[]] {
+  frequencies.sort(([, na], [,nb]) => nb - na)
+  const sum = frequencies.reduce((acc, [, n]) => acc + n, 0)
+  const objects: T[] = []
+  const nodes: Node[] = []
+  frequencies.forEach(([t, n], i) => {
+    objects.push(t)
+    nodes.push({interval: n / sum, index: i})
+  })
+  return [objects, nodes]
+}
+
+// a temporary data structure used for converting the list of frequencies
+// into a tree structure we can search efficiently
+type Node = {
+  index: number,
+  interval: number,
+  sum?: number,
+  leftThreshold?: number
+  rightThreshold?: number
+  left?: Node
+  right?: Node
+}
+
+// given a search tree, add the probability thresholds for each node
+function addThresholds(n: Node, acc: number) {
+  if (n.left) {
+    addThresholds(n.left, acc)
+    acc += n.left.sum!
+    n.leftThreshold = acc
   }
-  const f = thresholder(thresholds)
-  return (rng: Rng) => () => items[f(rng())]!
+  if (n.right) {
+    acc += n.interval
+    n.rightThreshold = acc
+    addThresholds(n.right, acc)
+  }
+}
+
+// convert a list of sorted nodes into an efficiently searchable tree
+function buildBranch(nodes: Node[]): Node {
+  const sum = nodes.reduce((acc, n) => acc + n.interval, 0)
+  const n = nodes.shift()!
+  n.sum = sum
+  if (nodes.length === 0) return n
+  if (n.interval * 3 >= sum) {
+    // the frequencies are so skewed a linear search is more efficient than a binary search
+    n.right = buildBranch(nodes)
+  } else {
+    // perform a binary search, considering wide intervals before narrow ones
+    const [left, right] = nodes.reduce(([left, right, idx], n) => {
+      if (belongsToLeftBranch(idx)) left.push(n)
+      else right.push(n)
+      return [left, right, idx + 1]
+    }, [[], [], 1] as [Node[], Node[], number])
+    n.left = buildBranch(left)
+    if (right.length > 0) n.right = buildBranch(right)
+  }
+  return n
+}
+
+// treating our sorted list of intervals as a heap, use the heap parent identification rules
+// to determine whether the index in question is under the left or the right branch under the
+// root node
+function belongsToLeftBranch(i: number): boolean {
+  if (i === 0) return true
+  if (i < 0) return false
+  return belongsToLeftBranch(Math.floor((i - 1) / 2))
 }
 
 /**
@@ -148,21 +222,6 @@ function sanitize<T>(frequencies: [T, number][]): [T, number][] {
     T,
     number,
   ][]
-}
-
-// make a function that converts a random number into an index, preserving the frequencies
-// assuming the random number is from an even distribution in the interval [0, 1]
-function thresholder(thresholds: number[]): (n: number) => number {
-  return eval(`(n) => ${portion(thresholds, 0, thresholds.length)}`)
-}
-
-// recursively convert the threshold list into nested ternary operators
-// this allows us to find our index in O(log(n)) comparisons
-function portion(thresholds: number[], start: number, end: number): string {
-  const n = end - start
-  if (n === 1) return start.toString()
-  const i = start + (n % 2 === 0 ? n / 2 - 1 : (n - 1) / 2)
-  return `(n > ${thresholds[i]} ? ${portion(thresholds, i + 1, end)} : ${portion(thresholds, start, i + 1)})`
 }
 
 /**
